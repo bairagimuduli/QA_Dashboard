@@ -1,0 +1,20 @@
+package com.automationhub.engine;
+
+import com.automationhub.domain.TestType;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+
+@Component
+public class PerformanceExecutionEngine extends AbstractStubExecutionEngine {
+
+    @Override
+    public TestType type() {
+        return TestType.PERFORMANCE;
+    }
+
+    @Override
+    protected Duration simulatedDuration() {
+        return Duration.ofMillis(800);
+    }
+}

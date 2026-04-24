@@ -1,0 +1,12 @@
+.gradle/
+build/
+out/
+data/
+workspaces/
+.idea/
+*.iml
+# Local secrets (copy from application-local.example.yml)
+src/main/resources/application-local.yml
+.DS_Store
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,30 @@
+flowchart TB
+  UI["Web UI\n(React / Tailwind)"]
+
+  GW["API Gateway\n(routing, auth, rate limits, WebSocket)"]
+
+  O["Orchestration Service"]
+  JS["Job Scheduler"]
+  RP["Reporting Service"]
+
+  AG["Aggregator & Parser\n(Tags / Profiles)"]
+  PR["Parameter Resolver"]
+
+  DB[("Test Metrics DB")]
+
+  UI <-->|REST / WebSocket| GW
+  GW --> O
+  GW --> RP
+
+  O --> AG
+  O --> PR
+  O --> JS
+
+  AG --> EE1["API Exec Engine\n(Postman / RestAssured)"]
+  AG --> EE2["Web Exec Engine\n(Selenium / Playwright)"]
+  AG --> EE3["Mobile Grid\n(Appium / Device Farm)"]
+  AG --> EE4["Load Injectors\n(JMeter / Gatling)"]
+
+  EE1 & EE2 & EE3 & EE4 --> RP
+  RP --> DB
+  JS -.->|triggers| O

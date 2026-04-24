@@ -1,0 +1,9 @@
+# Optional profile: same in-memory DB as the default in application.yml.
+# Use profile "filedb" (application-filedb.yml) for a persisted file under ./data/.
+#
+# Run:  .\gradlew.bat bootRun --args="--spring.profiles.active=memory"
+# IDEA: Active profiles: memory
+#
+spring:
+  datasource:
+    url: jdbc:h2:mem:qa-platform;DB_CLOSE_DELAY=-1;MODE=PostgreSQL

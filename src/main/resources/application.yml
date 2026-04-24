@@ -1,0 +1,83 @@
+spring:
+  # Optional local secrets (gitignored). No need for spring.profiles.active=local.
+  config:
+    import: optional:classpath:application-local.yml
+  application:
+    name: automation-execution-hub
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 16MB
+  datasource:
+    # Default: in-memory H2 — avoids 90020 "database already in use" when IntelliJ + Gradle or two bootRun hold ./data/*.mv.db.
+    # Data is lost when the process exits. For a persisted file DB under ./data/, use profile "filedb" (application-filedb.yml).
+    url: jdbc:h2:mem:qa-platform;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+    hikari:
+      connection-timeout: 60000
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    # Explicit H2 dialect: if the first JDBC connection fails (e.g. H2 90020), Hibernate has no metadata to infer dialect.
+    # Hibernate may log HHH90000025 when the DB is healthy (redundant dialect); that is suppressed under logging.level below.
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8090
+
+# Credentials: set env JENKINS_USERNAME + JENKINS_API_TOKEN, or use imported application-local.yml
+# (Do not use empty ${...:} placeholders here — they override application-local.yml.)
+jenkins:
+  base-url: ${JENKINS_BASE_URL:https://qa-jenkins.mpokket.org}
+  mobile-ui:
+    pipeline-jenkinsfile: ${JENKINS_MOBILE_UI_JOB_JENKINSFILE:QA_related/UI_Automation/MobileUI_Automation_NEO}
+    pipeline-jenkinsfile-test: ${JENKINS_MOBILE_UI_JOB_JENKINSFILE_TEST:QA_related/UI_Automation/MobileUI_Automation_NEO_Test}
+
+app:
+  cors:
+    # Include 127.0.0.1 — using http://127.0.0.1:5174 is a different origin than http://localhost:5174 for CORS when the browser calls :8090 directly.
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5174,http://localhost:5173,http://127.0.0.1:5174,http://127.0.0.1:5173}
+  notifications:
+    enabled: ${NOTIFICATIONS_ENABLED:true}
+    from-address: ${MAIL_FROM:noreply@yourcompany.com}
+    product-team-emails: ${PRODUCT_TEAM_EMAILS:}
+    automation-team-emails: ${AUTOMATION_TEAM_EMAILS:}
+  orchestration:
+    # Placeholder paths — point to local clones of test repos or CI agents
+    workspace-root: ${AUTOMATION_WORKSPACE_ROOT:./workspaces}
+  security:
+    # Dev-friendly: no login. Replace with OAuth2/LDAP before production.
+    dev-permit-all: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.automationhub: INFO
+    com.testmanagement: INFO
+    # HHH90000025 "H2Dialect does not need to be specified explicitly" when spring.jpa.database-platform is set (we keep it for failed-first-connection).
+    org.hibernate.orm.deprecation: ERROR

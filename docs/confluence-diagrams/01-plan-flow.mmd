@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph User["User / CI"]
+    U[QA Engineer or Webhook]
+  end
+
+  subgraph UI["Web UI"]
+    D[Dashboard / Insights]
+    W[Trigger Wizard]
+    H[Heatmap]
+  end
+
+  subgraph Hub["Execution Hub"]
+    O[Orchestration Service]
+    A[Aggregator & Tag Parser]
+    P[Parameter Resolver]
+    E[Execution Engines]
+    R[Reporting / Metrics]
+  end
+
+  subgraph Data["Data"]
+    DB[(Runs, Suites, PODs, Schedules)]
+  end
+
+  U --> D & W & H
+  W -->|REST| O
+  O --> A --> P --> E
+  E --> R
+  O & R --> DB
+  R -->|WebSocket / poll| UI

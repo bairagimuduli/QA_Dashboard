@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automation Execution Hub Demo</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #e11d48;
+      --sidebar1: #1e1b4b;
+      --sidebar2: #0f172a;
+      --chip: #f1f5f9;
+    }
+    body.dark {
+      --bg: #020617;
+      --panel: #0f172a;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --line: #334155;
+      --brand: #f43f5e;
+      --chip: #1e293b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, var(--sidebar1), var(--sidebar2));
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #312e81;
+    }
+    .logo {
+      padding: 18px 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .menu { padding: 10px; overflow: auto; flex: 1; }
+    .menu button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin: 2px 0;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .menu button.active { background: #e11d48; color: #fff; }
+    .menu button:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .theme-switch {
+      border-top: 1px solid rgba(255,255,255,0.15);
+      padding: 10px;
+    }
+    .theme-switch button {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .main { flex: 1; min-width: 0; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      flex-wrap: wrap;
+    }
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 10px 10px 0 0;
+      padding: 8px 10px;
+      font-size: 13px;
+      background: var(--panel);
+    }
+    .tab.active {
+      color: var(--brand);
+      font-weight: 700;
+      box-shadow: inset 0 -2px 0 var(--brand);
+    }
+    .content { padding: 20px; }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+    .kpi { font-size: 28px; font-weight: 800; margin: 6px 0; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .chip {
+      background: var(--chip);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    .banner {
+      border: 1px solid #93c5fd;
+      background: color-mix(in srgb, #60a5fa 16%, var(--panel));
+      border-radius: 14px;
+      padding: 12px;
+      margin: 10px 0 14px;
+      font-size: 14px;
+    }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); }
+    th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; }
+    th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .ok { color: #16a34a; font-weight: 700; }
+    .bad { color: #dc2626; font-weight: 700; }
+    .warn { color: #d97706; font-weight: 700; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .heatmap {
+      display: grid;
+      grid-template-columns: 140px repeat(4, 1fr);
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .cell {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      background: var(--panel);
+      font-size: 12px;
+    }
+    .green { background: #22c55e33; }
+    .red { background: #ef444433; }
+    .amber { background: #f59e0b33; }
+    .upload-box {
+      border: 2px dashed #6366f1;
+      border-radius: 14px;
+      padding: 12px;
+      margin: 12px 0;
+      background: color-mix(in srgb, #6366f1 10%, var(--panel));
+    }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn.primary {
+      background: #4f46e5;
+      border-color: #4f46e5;
+      color: #fff;
+    }
+    .footer-note { margin-top: 18px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body class="dark">
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">mPokket • QA Dashboard</div>
+      <div class="menu" id="menu"></div>
+      <div class="theme-switch">
+        <button id="themeToggle">Switch mode</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <strong>Automation Execution Hub (Demo)</strong>
+        <span class="muted">Dummy data only</span>
+      </div>
+      <div class="tabs" id="tabs"></div>
+      <div class="content">
+        <section id="home-page" class="section active">
+          <h2>QA Dashboard - Home Page</h2>
+          <p class="muted">Choose area: performance runs, test-case workflow, or report library.</p>
+          <div class="card-grid">
+            <div class="card">
+              <h3>Performance testing</h3>
+              <p class="muted">DarkKnight Gatling runs, injection profiles, and job output.</p>
+            </div>
+            <div class="card">
+              <h3>Test case management</h3>
+              <p class="muted">Features, test cases, and handoff to automation.</p>
+            </div>
+            <div class="card">
+              <h3>Reports</h3>
+              <p class="muted">Saved run reports and latest execution summary.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="dashboard" class="section">
+          <h2>Dashboard</h2>
+          <div class="card-grid">
+            <div class="card"><div class="muted">Total runs (24h)</div><div class="kpi">186</div></div>
+            <div class="card"><div class="muted">Pass rate</div><div class="kpi">91%</div></div>
+            <div class="card"><div class="muted">Queued/Running</div><div class="kpi">14</div></div>
+            <div class="card"><div class="muted">Flaky tests</div><div class="kpi">9</div></div>
+          </div>
+          <div class="banner">Unified view of POD health and test status. Click other tabs for detailed drill-down.</div>
+        </section>
+
+        <section id="live-view" class="section">
+          <h2>Execution Topology Heatmap</h2>
+          <div class="heatmap">
+            <div></div><div class="cell"><strong>API</strong></div><div class="cell"><strong>Web</strong></div><div class="cell"><strong>Mobile</strong></div><div class="cell"><strong>Perf</strong></div>
+            <div class="cell"><strong>Onboarding</strong></div><div class="cell green">Smoke: Passed</div><div class="cell green">Sanity: Passed</div><div class="cell amber">Queued</div><div class="cell green">Passed</div>
+            <div class="cell"><strong>Disbursement</strong></div><div class="cell red">Failed</div><div class="cell amber">Running</div><div class="cell green">Passed</div><div class="cell green">Passed</div>
+            <div class="cell"><strong>Payments</strong></div><div class="cell green">Passed</div><div class="cell red">Failed</div><div class="cell green">Passed</div><div class="cell amber">Running</div>
+          </div>
+        </section>
+
+        <section id="qa-ops" class="section">
+          <h2>Unified Trigger Wizard (Mock)</h2>
+          <div class="card">
+            <div class="chips">
+              <span class="chip">Scope: Regression</span>
+              <span class="chip">PODs: Onboarding, Payments</span>
+              <span class="chip">Layers: API, Mobile</span>
+              <span class="chip">Env: Staging</span>
+            </div>
+            <p class="muted">Tag query: @regression AND (@pod:onboarding OR @pod:payments) AND NOT @flaky</p>
+            <button class="btn primary">Trigger execution</button>
+          </div>
+        </section>
+
+        <section id="history" class="section">
+          <h2>Execution history</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Run ID</th><th>Profile</th><th>Status</th><th>Duration</th><th>By</th></tr></thead>
+              <tbody>
+                <tr><td>RUN-1042</td><td>Nightly Regression</td><td class="ok">PASSED</td><td>23m 11s</td><td>scheduler</td></tr>
+                <tr><td>RUN-1041</td><td>Hotfix Sanity</td><td class="bad">FAILED</td><td>7m 08s</td><td>qa.lead</td></tr>
+                <tr><td>RUN-1040</td><td>Smoke API</td><td class="warn">RUNNING</td><td>2m 45s</td><td>dev.user</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="performance-testing" class="section">
+          <h2>Performance testing</h2>
+          <div class="card">
+            <p class="muted">Simulation: checkout.PeakHoursSimulation</p>
+            <p class="muted">Injection: ramp-users, Users: 250, Duration: 900s</p>
+            <button class="btn primary">Run Gatling simulation</button>
+          </div>
+        </section>
+
+        <section id="test-case-management" class="section">
+          <h2>Test case management</h2>
+          <div class="banner">
+            Open a feature and use <strong>Import from Excel</strong>. Upload is available for Draft and Pending review.
+          </div>
+          <div class="upload-box">
+            <h3>Import from Excel</h3>
+            <p class="muted">Row 1 headers. Required: Title. Optional: Steps, Expected result, Priority.</p>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn">Download template</button>
+              <button class="btn primary">Upload Excel...</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Feature</th><th>Status</th><th>Test Cases</th><th>Last Update</th></tr></thead>
+              <tbody>
+                <tr><td>Onboarding KYC</td><td>Draft</td><td>14</td><td>2026-04-15</td></tr>
+                <tr><td>Loan Disbursement Retry</td><td>Pending review</td><td>27</td><td>2026-04-16</td></tr>
+                <tr><td>Payment Callback</td><td>Approved for automation</td><td>19</td><td>2026-04-14</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="reports" class="section">
+          <h2>Reports</h2>
+          <div class="card-grid">
+            <div class="card"><strong>GAT-2026-0416-01</strong><p class="muted">Checkout sanity report - Passed</p></div>
+            <div class="card"><strong>GAT-2026-0415-09</strong><p class="muted">Login spike report - Failed threshold</p></div>
+            <div class="card"><strong>GAT-2026-0415-03</strong><p class="muted">API endurance report - Passed</p></div>
+          </div>
+        </section>
+
+        <section id="trigger-wizard" class="section">
+          <h2>Trigger wizard</h2>
+          <p class="muted">Quick flow preview: Scope -> POD -> Layer -> Environment -> Trigger.</p>
+          <div class="card">
+            <p><strong>Selected:</strong> Smoke | Onboarding + Disbursement | API + Web | Staging</p>
+            <button class="btn primary">Run now</button>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          Demo file is static HTML with dummy data. No backend required.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const navItems = [
+      "Home Page",
+      "Dashboard",
+      "Live View",
+      "QA Ops",
+      "History",
+      "Performance testing",
+      "Test case management",
+      "Reports",
+      "Trigger wizard"
+    ];
+
+    const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const menu = document.getElementById("menu");
+    const tabs = document.getElementById("tabs");
+
+    function renderButtons(host, className) {
+      host.innerHTML = "";
+      navItems.forEach((name, i) => {
+        const btn = document.createElement("button");
+        btn.className = className + (i === 0 ? " active" : "");
+        btn.textContent = name;
+        btn.dataset.target = slug(name);
+        btn.onclick = () => activate(btn.dataset.target);
+        host.appendChild(btn);
+      });
+    }
+
+    function activate(target) {
+      document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+      document.querySelectorAll("[data-target]").forEach((b) => b.classList.remove("active"));
+      const section = document.getElementById(target);
+      if (section) section.classList.add("active");
+      document.querySelectorAll('[data-target="' + target + '"]').forEach((b) => b.classList.add("active"));
+    }
+
+    renderButtons(menu, "");
+    renderButtons(tabs, "tab");
+
+    document.getElementById("themeToggle").onclick = () => {
+      document.body.classList.toggle("dark");
+    };
+  </script>
+</body>
+</html>

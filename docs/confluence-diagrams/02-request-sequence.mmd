@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant U as User
+  participant UI as React UI
+  participant API as Hub API
+  participant O as Orchestration
+  participant E as Execution Engine(s)
+  participant R as Reporting
+
+  U->>UI: Configure scope, PODs, layers, env
+  UI->>API: POST trigger (tags / profile)
+  API->>O: Validate & enqueue run
+  O->>O: Parse tags, resolve params
+  O->>E: Dispatch per suite / layer
+  E-->>R: Logs, status, results
+  R-->>API: Persist run & metrics
+  API-->>UI: Run ID + live updates (WS)
+  UI-->>U: History, heatmap, dashboards
