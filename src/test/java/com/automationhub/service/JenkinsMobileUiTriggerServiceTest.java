@@ -11,6 +11,6 @@ class JenkinsMobileUiTriggerServiceTest {
         assertEquals(
                 "QA_related/UI_Automation/MobileUI_Automation_NEO",
                 JenkinsMobileUiTriggerService.extractJobFullNameFromBuildUrl(
-                        "https://qa-jenkins.mpokket.org/job/QA_related/job/UI_Automation/job/MobileUI_Automation_NEO/42/"));
+                        "{{url}}/job/QA_related/job/UI_Automation/job/MobileUI_Automation_NEO/42/"));
     }
 }
